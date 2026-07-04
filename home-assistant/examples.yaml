@@ -1,0 +1,96 @@
+# ─────────────────────────────────────────────────────────────
+# Example Home Assistant configuration for the Alexa ↔ Assist bridge
+# Adapt entity IDs (media_player, covers, scripts…) to your setup.
+# ─────────────────────────────────────────────────────────────
+
+# 1) HELPERS ---------------------------------------------------
+#    (create via the UI, or in configuration.yaml)
+input_text:
+  assist_alexa_question:
+    name: Assist Alexa Question
+    max: 255          # holds JSON {"t":..,"y":..,"n":..,"w":..}
+
+input_boolean:
+  declencher_question_alexa:      # EXPOSE THIS ONE TO ALEXA (routine trigger)
+    name: Trigger Alexa Question
+    icon: mdi:bullhorn
+
+
+# 2) SCRIPT: ask a question through Alexa ----------------------
+script:
+  poser_question_alexa:
+    alias: "🔊❓ Ask a question through Alexa (Assist)"
+    fields:
+      text:        { description: "The question to ask" }
+      yes_command: { description: "Phrase sent to Assist on YES" }
+      no_command:  { description: "Phrase sent to Assist on NO" }
+      echo:        { description: "Target Echo media_player" }
+      whisper:     { description: "Whisper the question (true/false)", default: false }
+    sequence:
+      - action: media_player.volume_set
+        target: { entity_id: "{{ echo }}" }
+        data:
+          volume_level: "{{ 0.6 if whisper | default(false) else 0.5 }}"
+      - action: input_text.set_value
+        target: { entity_id: input_text.assist_alexa_question }
+        data:
+          value: "{{ {'t': text, 'y': yes_command, 'n': no_command, 'w': whisper | default(false)} | to_json }}"
+      - action: input_boolean.turn_on          # fires the Alexa routine
+        target: { entity_id: input_boolean.declencher_question_alexa }
+      - delay: { seconds: 4 }
+      - action: input_boolean.turn_off
+        target: { entity_id: input_boolean.declencher_question_alexa }
+      - delay: { seconds: 21 }                  # give the skill time to read it
+      - action: input_text.set_value            # HA clears it (skill does only ONE fast call)
+        target: { entity_id: input_text.assist_alexa_question }
+        data: { value: "" }
+
+
+# 3) EXAMPLE FLOW: "TV off in the evening -> close shutters?" ---
+automation:
+  # a) trigger: ask the question
+  - alias: "🌙🪟 Evening — TV off, ask to close shutters"
+    mode: single
+    triggers:
+      - trigger: state
+        entity_id: media_player.living_room_tv
+        to: ["off", "standby"]
+        for: { seconds: 30 }
+    conditions:
+      - condition: time
+        after: "20:00:00"
+      - condition: state
+        entity_id: cover.day_area
+        state: "open"
+    actions:
+      - action: script.poser_question_alexa
+        data:
+          text: "You are turning off the TV and the shutters are open. Should I close them?"
+          yes_command: "close the shutters for the night"
+          no_command: "leave the shutters open"
+          echo: media_player.living_room_echo
+          whisper: true
+
+  # b) answer: YES  (say just "yes" -> AMAZON.YesIntent forwards yes_command)
+  - alias: "🪟✅ Shutters YES"
+    mode: single
+    triggers:
+      - trigger: conversation
+        command:
+          - "close the shutters for the night"
+          - "yes close the shutters"
+    actions:
+      # slow script -> fire-and-forget so conversation.process returns instantly
+      - action: script.turn_on
+        target: { entity_id: script.close_all_shutters }
+      - set_conversation_response: "Done, closing the shutters."
+
+  # c) answer: NO  (say just "no" -> AMAZON.NoIntent forwards no_command)
+  - alias: "🪟❌ Shutters NO"
+    mode: single
+    triggers:
+      - trigger: conversation
+        command:
+          - "leave the shutters open"
+    actions:
+      - set_conversation_response: "Alright, leaving them open."

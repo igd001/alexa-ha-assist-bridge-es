@@ -1,0 +1,25 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "mon assistant",
+      "intents": [
+        { "name": "AMAZON.StopIntent", "samples": [] },
+        { "name": "AMAZON.CancelIntent", "samples": [] },
+        { "name": "AMAZON.HelpIntent", "samples": [] },
+        { "name": "AMAZON.FallbackIntent", "samples": [] },
+        { "name": "AMAZON.YesIntent", "samples": [] },
+        { "name": "AMAZON.NoIntent", "samples": [] },
+        { "name": "ModeChatIntent", "samples": [
+            "mode chat", "le mode chat", "passe en mode chat", "passe le en mode chat",
+            "en mode chat", "mets les en mode chat", "mets le mode chat",
+            "laisse les en mode chat", "laisse en mode chat",
+            "non mais le mode chat", "non mais en mode chat", "non laisse en mode chat",
+            "juste le mode chat", "plutot le mode chat"
+        ] },
+        { "name": "CommandIntent", "slots": [ { "name": "command", "type": "AMAZON.SearchQuery" } ],
+          "samples": [ "de {command}", "que {command}", "pour {command}", "dis {command}", "fais {command}" ] }
+      ],
+      "types": []
+    }
+  }
+}
