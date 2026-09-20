@@ -116,10 +116,39 @@ class ModeChatHandler(AbstractRequestHandler):
 class CommandHandler(AbstractRequestHandler):
     def can_handle(self, handler_input):
         return ask_utils.is_intent_name("CommandIntent")(handler_input)
+
     def handle(self, handler_input):
         sa = handler_input.attributes_manager.session_attributes
-        cmd = ask_utils.request_util.get_slot_value(handler_input=handler_input, slot_name="command") or ""
-        return handler_input.response_builder.speak(ha_converse(cmd, sa)).ask(" ").response
+        cmd = ask_utils.request_util.get_slot_value(
+            handler_input=handler_input,
+            slot_name="command"
+        ) or ""
+
+        if cmd.strip().lower() in {"adiós", "adios", "ya está", "ya esta"}:
+            return handler_input.response_builder.speak("Hasta luego.").response
+
+        respuesta = ha_converse(cmd, sa)
+
+        return (
+            handler_input.response_builder
+            .speak(respuesta)
+            .add_directive(
+                ElicitSlotDirective(
+                    slot_to_elicit="command",
+                    updated_intent=Intent(
+                        name="CommandIntent",
+                        confirmation_status="NONE",
+                        slots={
+                            "command": Slot(
+                                name="command",
+                                confirmation_status="NONE"
+                            )
+                        }
+                    )
+                )
+            )
+            .response
+        )
         
 class HelpHandler(AbstractRequestHandler):
     def can_handle(self, handler_input):
