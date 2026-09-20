@@ -126,10 +126,16 @@ class CommandHandler(AbstractRequestHandler):
             slot_name="command"
         ) or ""
 
-        if cmd.strip().lower() in {"adiós", "adios", "ya está", "ya esta"}:
+        if cmd.strip().lower() in {"adiós", "adios", "ya está", "ya esta", "me voy"}:
             sa["esperando_comando"] = False
             sa["conversation_id"] = None
-            return handler_input.response_builder.speak("Hasta luego.").response
+            return (
+                handler_input.response_builder
+                .speak("Hasta luego.")
+                .set_should_end_session(True)
+                .response
+            )
+        
         respuesta = ha_converse(cmd, sa)
 
         return _reelicit_command(
