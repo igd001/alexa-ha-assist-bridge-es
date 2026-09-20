@@ -18,19 +18,26 @@
           ]
         }
       },
-      "apis": {
-        "custom": {
-          "endpoint": {
-            "sourceDir": "lambda"
-          }
-        }
-      },
       "isAvailableWorldwide": false,
       "testingInstructions": "Skill privada para pruebas personales con Home Assistant.",
       "category": "SMART_HOME",
       "distributionCountries": [
         "ES"
       ]
+    },
+    "apis": {
+      "custom": {
+        "endpoint": {
+          "sourceDir": "lambda"
+        }
+      }
+    },
+    "privacyAndCompliance": {
+      "allowsPurchases": false,
+      "usesPersonalInfo": false,
+      "isChildDirected": false,
+      "isExportCompliant": true,
+      "containsAds": false
     }
   }
 }
