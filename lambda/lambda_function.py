@@ -137,10 +137,12 @@ class CommandHandler(AbstractRequestHandler):
 class HelpHandler(AbstractRequestHandler):
     def can_handle(self, handler_input):
         return ask_utils.is_intent_name("AMAZON.HelpIntent")(handler_input)
-    def handle(self, handler_input):
-        s = "Dites une commande, par exemple : la poubelle est sortie."
-        return handler_input.response_builder.speak(s).ask(s).response
 
+    def handle(self, handler_input):
+        return _reelicit_command(
+            handler_input.response_builder,
+            "Puedes decirme qué quieres hacer."
+        )
 class StopHandler(AbstractRequestHandler):
     def can_handle(self, handler_input):
         return ask_utils.is_intent_name("AMAZON.StopIntent")(handler_input)
@@ -173,9 +175,12 @@ class CancelHandler(AbstractRequestHandler):
 class FallbackHandler(AbstractRequestHandler):
     def can_handle(self, handler_input):
         return ask_utils.is_intent_name("AMAZON.FallbackIntent")(handler_input)
+
     def handle(self, handler_input):
-        s = "Je n'ai pas compris, repetez ?"
-        return handler_input.response_builder.speak(s).ask(s).response
+        return _reelicit_command(
+            handler_input.response_builder,
+            "No te he entendido. Dime qué quieres hacer."
+        )
 
 class SessionEndedHandler(AbstractRequestHandler):
     def can_handle(self, handler_input):
