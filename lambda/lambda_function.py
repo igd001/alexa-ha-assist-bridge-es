@@ -68,6 +68,7 @@ class LaunchHandler(AbstractRequestHandler):
     def handle(self, handler_input):
         sa = handler_input.attributes_manager.session_attributes
         sa["conversation_id"] = None
+        sa["esperando_comando"] = True
 
         return (
             handler_input.response_builder
@@ -161,14 +162,16 @@ class CommandHandler(AbstractRequestHandler):
 
     def handle(self, handler_input):
         sa = handler_input.attributes_manager.session_attributes
+        sa["esperando_comando"] = True
         cmd = ask_utils.request_util.get_slot_value(
             handler_input=handler_input,
             slot_name="command"
         ) or ""
 
         if cmd.strip().lower() in {"adiós", "adios", "ya está", "ya esta"}:
+            sa["esperando_comando"] = False
+            sa["conversation_id"] = None
             return handler_input.response_builder.speak("Hasta luego.").response
-
         respuesta = ha_converse(cmd, sa)
 
         return (
