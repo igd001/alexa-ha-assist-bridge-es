@@ -7,8 +7,8 @@ from ask_sdk_core.dispatch_components import AbstractRequestHandler, AbstractExc
 
 HA_URL   = "https://YOUR_HA_URL.ui.nabu.casa"  # your Home Assistant URL (Nabu Casa remote or your own HTTPS)
 HA_TOKEN = "YOUR_LONG_LIVED_ACCESS_TOKEN"  # HA profile -> Security -> Long-lived access tokens
-HA_LANG  = "fr"
-HA_AGENT = "conversation.home_assistant"
+HA_LANG  = "es-ES"
+HA_AGENT = "conversation.google_ai_conversation"
 QUESTION_ENTITY = "input_text.assist_alexa_question"
 TIMEOUT = 4
 
