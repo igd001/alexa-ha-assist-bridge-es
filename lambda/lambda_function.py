@@ -12,15 +12,9 @@ HA_URL   = "https://YOUR_HA_URL.ui.nabu.casa"  # your Home Assistant URL (Nabu C
 HA_TOKEN = "YOUR_LONG_LIVED_ACCESS_TOKEN"  # HA profile -> Security -> Long-lived access tokens
 HA_LANG  = "es-ES"
 HA_AGENT = "conversation.google_ai_conversation"
-QUESTION_ENTITY = "input_text.assist_alexa_question"
 TIMEOUT = 4
 
 logger = logging.getLogger(__name__); logger.setLevel(logging.INFO)
-
-def _wrap(text, whisper):
-    if whisper:
-        return '<amazon:effect name="whispered">' + text + '</amazon:effect>'
-    return text
 
 def _req(path, data=None, method="GET"):
     req = urllib.request.Request(HA_URL + path,
@@ -74,15 +68,6 @@ def _reelicit_command(response_builder, speech):
     )
 
 
-def ha_get_question():
-    try:
-        r = _req("/api/states/" + QUESTION_ENTITY)
-        val = r.get("state", "")
-        if val and val not in ("unknown", "unavailable"):
-            return json.loads(val)
-    except Exception as e:
-        logger.exception(e)
-    return None
 
 class LaunchHandler(AbstractRequestHandler):
     def can_handle(self, handler_input):
@@ -126,14 +111,6 @@ class NoHandler(AbstractRequestHandler):
             respuesta
         )
 
-class ModeChatHandler(AbstractRequestHandler):
-    def can_handle(self, handler_input):
-        return ask_utils.is_intent_name("ModeChatIntent")(handler_input)
-    def handle(self, handler_input):
-        sa = handler_input.attributes_manager.session_attributes
-        ans = ha_converse("active le mode chat")
-        return handler_input.response_builder.speak(_wrap(ans, sa.get("whisper"))).response
-
 class CommandHandler(AbstractRequestHandler):
     def can_handle(self, handler_input):
         return ask_utils.is_intent_name("CommandIntent")(handler_input)
@@ -172,27 +149,10 @@ class StopHandler(AbstractRequestHandler):
         sa = handler_input.attributes_manager.session_attributes
 
         if sa.get("esperando_comando"):
-            return (
-                handler_input.response_builder
-                .speak("Sigo aquí. Dime el comando.")
-                .add_directive(
-                    ElicitSlotDirective(
-                        slot_to_elicit="command",
-                        updated_intent=Intent(
-                            name="CommandIntent",
-                            confirmation_status="NONE",
-                            slots={
-                                "command": Slot(
-                                    name="command",
-                                    confirmation_status="NONE"
-                                )
-                            }
-                        )
-                    )
-                )
-                .response
+            return _reelicit_command(
+                handler_input.response_builder,
+                "Sigo aquí. Dime el comando."
             )
-
         return handler_input.response_builder.speak("Hasta luego.").response
 
 class CancelHandler(AbstractRequestHandler):
@@ -202,26 +162,10 @@ class CancelHandler(AbstractRequestHandler):
     def handle(self, handler_input):
         sa = handler_input.attributes_manager.session_attributes
 
-        if sa.get("esperando_comando"):
-            return (
-                handler_input.response_builder
-                .speak("Vale. Dime qué quieres hacer.")
-                .add_directive(
-                    ElicitSlotDirective(
-                        slot_to_elicit="command",
-                        updated_intent=Intent(
-                            name="CommandIntent",
-                            confirmation_status="NONE",
-                            slots={
-                                "command": Slot(
-                                    name="command",
-                                    confirmation_status="NONE"
-                                )
-                            }
-                        )
-                    )
-                )
-                .response
+        if sa.get("esperando_comando"):           
+            return _reelicit_command(
+                handler_input.response_builder,
+                "Vale. Dime qué quieres hacer."
             )
 
         return handler_input.response_builder.speak("Hasta luego.").response
@@ -246,7 +190,7 @@ class CatchAll(AbstractExceptionHandler):
         return handler_input.response_builder.speak("Il y a eu un souci.").response
 
 sb = SkillBuilder()
-for h in [LaunchHandler(), YesHandler(), NoHandler(), ModeChatHandler(), CommandHandler(),
+for h in [LaunchHandler(), YesHandler(), NoHandler(), CommandHandler(),
           HelpHandler(), StopHandler(), CancelHandler(), FallbackHandler(), SessionEndedHandler()]:
     sb.add_request_handler(h)
 sb.add_exception_handler(CatchAll())
