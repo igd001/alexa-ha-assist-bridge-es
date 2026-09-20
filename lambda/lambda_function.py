@@ -51,6 +51,29 @@ def ha_converse(text, session_attributes=None):
         logger.exception(e)
         return "Lo siento, no he podido contactar con la Gemini."
 
+def _reelicit_command(response_builder, speech):
+    return (
+        response_builder
+        .speak(speech)
+        .add_directive(
+            ElicitSlotDirective(
+                slot_to_elicit="command",
+                updated_intent=Intent(
+                    name="CommandIntent",
+                    confirmation_status="NONE",
+                    slots={
+                        "command": Slot(
+                            name="command",
+                            confirmation_status="NONE"
+                        )
+                    }
+                )
+            )
+        )
+        .response
+    )
+
+
 def ha_get_question():
     try:
         r = _req("/api/states/" + QUESTION_ENTITY)
@@ -70,26 +93,11 @@ class LaunchHandler(AbstractRequestHandler):
         sa["conversation_id"] = None
         sa["esperando_comando"] = True
 
-        return (
-            handler_input.response_builder
-            .speak("Sí, dime.")
-            .add_directive(
-                ElicitSlotDirective(
-                    slot_to_elicit="command",
-                    updated_intent=Intent(
-                        name="CommandIntent",
-                        confirmation_status="NONE",
-                        slots={
-                            "command": Slot(
-                                name="command",
-                                confirmation_status="NONE"
-                            )
-                        }
-                    )
-                )
-            )
-            .response
+        return _reelicit_command(
+            handler_input.response_builder,
+            "Sí, dime."
         )
+        
 class YesHandler(AbstractRequestHandler):
     def can_handle(self, handler_input):
         return ask_utils.is_intent_name("AMAZON.YesIntent")(handler_input)
@@ -99,25 +107,9 @@ class YesHandler(AbstractRequestHandler):
         sa["esperando_comando"] = True
         respuesta = ha_converse("sí", sa)
 
-        return (
-            handler_input.response_builder
-            .speak(respuesta)
-            .add_directive(
-                ElicitSlotDirective(
-                    slot_to_elicit="command",
-                    updated_intent=Intent(
-                        name="CommandIntent",
-                        confirmation_status="NONE",
-                        slots={
-                            "command": Slot(
-                                name="command",
-                                confirmation_status="NONE"
-                            )
-                        }
-                    )
-                )
-            )
-            .response
+        return _reelicit_command(
+            handler_input.response_builder,
+            respuesta
         )
 
 class NoHandler(AbstractRequestHandler):
@@ -129,25 +121,9 @@ class NoHandler(AbstractRequestHandler):
         sa["esperando_comando"] = True
         respuesta = ha_converse("no", sa)
 
-        return (
-            handler_input.response_builder
-            .speak(respuesta)
-            .add_directive(
-                ElicitSlotDirective(
-                    slot_to_elicit="command",
-                    updated_intent=Intent(
-                        name="CommandIntent",
-                        confirmation_status="NONE",
-                        slots={
-                            "command": Slot(
-                                name="command",
-                                confirmation_status="NONE"
-                            )
-                        }
-                    )
-                )
-            )
-            .response
+        return _reelicit_command(
+            handler_input.response_builder,
+            respuesta
         )
 
 class ModeChatHandler(AbstractRequestHandler):
@@ -176,25 +152,9 @@ class CommandHandler(AbstractRequestHandler):
             return handler_input.response_builder.speak("Hasta luego.").response
         respuesta = ha_converse(cmd, sa)
 
-        return (
-            handler_input.response_builder
-            .speak(respuesta)
-            .add_directive(
-                ElicitSlotDirective(
-                    slot_to_elicit="command",
-                    updated_intent=Intent(
-                        name="CommandIntent",
-                        confirmation_status="NONE",
-                        slots={
-                            "command": Slot(
-                                name="command",
-                                confirmation_status="NONE"
-                            )
-                        }
-                    )
-                )
-            )
-            .response
+        return _reelicit_command(
+            handler_input.response_builder,
+            respuesta
         )
         
 class HelpHandler(AbstractRequestHandler):
