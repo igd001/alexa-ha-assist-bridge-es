@@ -12,7 +12,7 @@ HA_URL   = "https://YOUR_HA_URL.ui.nabu.casa"  # your Home Assistant URL (Nabu C
 HA_TOKEN = "YOUR_LONG_LIVED_ACCESS_TOKEN"  # HA profile -> Security -> Long-lived access tokens
 HA_LANG  = "es-ES"
 HA_AGENT = "conversation.google_ai_conversation"
-TIMEOUT = 4
+TIMEOUT = 8
 
 logger = logging.getLogger(__name__); logger.setLevel(logging.INFO)
 
