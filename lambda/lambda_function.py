@@ -103,9 +103,10 @@ class CommandHandler(AbstractRequestHandler):
     def can_handle(self, handler_input):
         return ask_utils.is_intent_name("CommandIntent")(handler_input)
     def handle(self, handler_input):
+        sa = handler_input.attributes_manager.session_attributes
         cmd = ask_utils.request_util.get_slot_value(handler_input=handler_input, slot_name="command") or ""
-        return handler_input.response_builder.speak(ha_converse(cmd)).ask(" ").response
-
+        return handler_input.response_builder.speak(ha_converse(cmd, sa)).ask(" ").response
+        
 class HelpHandler(AbstractRequestHandler):
     def can_handle(self, handler_input):
         return ask_utils.is_intent_name("AMAZON.HelpIntent")(handler_input)
