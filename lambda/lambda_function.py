@@ -206,10 +206,65 @@ class HelpHandler(AbstractRequestHandler):
 
 class StopHandler(AbstractRequestHandler):
     def can_handle(self, handler_input):
-        return (ask_utils.is_intent_name("AMAZON.StopIntent")(handler_input)
-                or ask_utils.is_intent_name("AMAZON.CancelIntent")(handler_input))
+        return ask_utils.is_intent_name("AMAZON.StopIntent")(handler_input)
+
     def handle(self, handler_input):
-        return handler_input.response_builder.speak("A bientot.").response
+        sa = handler_input.attributes_manager.session_attributes
+
+        if sa.get("esperando_comando"):
+            return (
+                handler_input.response_builder
+                .speak("Sigo aquí. Dime el comando.")
+                .add_directive(
+                    ElicitSlotDirective(
+                        slot_to_elicit="command",
+                        updated_intent=Intent(
+                            name="CommandIntent",
+                            confirmation_status="NONE",
+                            slots={
+                                "command": Slot(
+                                    name="command",
+                                    confirmation_status="NONE"
+                                )
+                            }
+                        )
+                    )
+                )
+                .response
+            )
+
+        return handler_input.response_builder.speak("Hasta luego.").response
+
+class CancelHandler(AbstractRequestHandler):
+    def can_handle(self, handler_input):
+        return ask_utils.is_intent_name("AMAZON.CancelIntent")(handler_input)
+
+    def handle(self, handler_input):
+        sa = handler_input.attributes_manager.session_attributes
+
+        if sa.get("esperando_comando"):
+            return (
+                handler_input.response_builder
+                .speak("Vale. Dime qué quieres hacer.")
+                .add_directive(
+                    ElicitSlotDirective(
+                        slot_to_elicit="command",
+                        updated_intent=Intent(
+                            name="CommandIntent",
+                            confirmation_status="NONE",
+                            slots={
+                                "command": Slot(
+                                    name="command",
+                                    confirmation_status="NONE"
+                                )
+                            }
+                        )
+                    )
+                )
+                .response
+            )
+
+        return handler_input.response_builder.speak("Hasta luego.").response
 
 class FallbackHandler(AbstractRequestHandler):
     def can_handle(self, handler_input):
@@ -232,7 +287,7 @@ class CatchAll(AbstractExceptionHandler):
 
 sb = SkillBuilder()
 for h in [LaunchHandler(), YesHandler(), NoHandler(), ModeChatHandler(), CommandHandler(),
-          HelpHandler(), StopHandler(), FallbackHandler(), SessionEndedHandler()]:
+          HelpHandler(), StopHandler(), CancelHandler(), FallbackHandler(), SessionEndedHandler()]:
     sb.add_request_handler(h)
 sb.add_exception_handler(CatchAll())
 lambda_handler = sb.lambda_handler()
