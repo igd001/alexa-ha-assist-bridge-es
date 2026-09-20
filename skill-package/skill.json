@@ -1,0 +1,29 @@
+{
+  "manifest": {
+    "manifestVersion": "1.0",
+    "publishingInformation": {
+      "locales": {
+        "es-ES": {
+          "name": "Casa Asistente",
+          "summary": "Puente de voz entre Alexa y Home Assistant.",
+          "description": "Permite controlar Home Assistant mediante comandos de voz a través de Alexa.",
+          "examplePhrases": [
+            "Alexa, abre Casa Asistente"
+          ],
+          "keywords": [
+            "Home Assistant",
+            "casa",
+            "domótica",
+            "asistente"
+          ]
+        }
+      },
+      "isAvailableWorldwide": false,
+      "testingInstructions": "Skill privada para pruebas personales con Home Assistant.",
+      "category": "SMART_HOME",
+      "distributionCountries": [
+        "ES"
+      ]
+    }
+  }
+}
