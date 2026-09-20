@@ -96,6 +96,7 @@ class YesHandler(AbstractRequestHandler):
 
     def handle(self, handler_input):
         sa = handler_input.attributes_manager.session_attributes
+        sa["esperando_comando"] = True
         respuesta = ha_converse("sí", sa)
 
         return (
@@ -125,6 +126,7 @@ class NoHandler(AbstractRequestHandler):
 
     def handle(self, handler_input):
         sa = handler_input.attributes_manager.session_attributes
+        sa["esperando_comando"] = True
         respuesta = ha_converse("no", sa)
 
         return (
