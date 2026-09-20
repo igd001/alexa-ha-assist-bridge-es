@@ -43,7 +43,7 @@ def ha_converse(text, session_attributes=None):
         return r["response"]["speech"]["plain"]["speech"] or "Hecho."
     except Exception as e:
         logger.exception(e)
-        return "Lo siento, no he podido contactar con la Gemini."
+        return "Lo siento, no he podido contactar con Gemini."
 
 def _reelicit_command(response_builder, speech):
     return (
