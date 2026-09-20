@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Pont Alexa <-> Home Assistant Assist (conversation.process) + chuchotement optionnel
-import logging, json, urllib.request
+import logging, json, urllib.request, os
+from dotenv import load_dotenv
 import ask_sdk_core.utils as ask_utils
 from ask_sdk_core.skill_builder import SkillBuilder
 from ask_sdk_core.dispatch_components import AbstractRequestHandler, AbstractExceptionHandler
@@ -8,8 +9,10 @@ from ask_sdk_model import Intent, Slot
 from ask_sdk_model.dialog import ElicitSlotDirective
 
 
-HA_URL   = "https://YOUR_HA_URL.ui.nabu.casa"  # your Home Assistant URL (Nabu Casa remote or your own HTTPS)
-HA_TOKEN = "YOUR_LONG_LIVED_ACCESS_TOKEN"  # HA profile -> Security -> Long-lived access tokens
+load_dotenv()
+
+HA_URL   = os.environ["HA_URL"]
+HA_TOKEN = os.environ["HA_TOKEN"]
 HA_LANG  = "es-ES"
 HA_AGENT = "conversation.google_ai_conversation"
 TIMEOUT = 8
