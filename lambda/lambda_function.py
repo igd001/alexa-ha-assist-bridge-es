@@ -26,14 +26,27 @@ def _req(path, data=None, method="GET"):
         method=method)
     return json.load(urllib.request.urlopen(req, timeout=TIMEOUT))
 
-def ha_converse(text):
+def ha_converse(text, session_attributes=None):
     try:
         payload = {"text": text, "language": HA_LANG}
-        if HA_AGENT: payload["agent_id"] = HA_AGENT
+        if HA_AGENT:
+            payload["agent_id"] = HA_AGENT
+
+        if session_attributes:
+            conversation_id = session_attributes.get("conversation_id")
+            if conversation_id:
+                payload["conversation_id"] = conversation_id
+
         r = _req("/api/conversation/process", payload, "POST")
-        return r["response"]["speech"]["plain"]["speech"] or "C'est fait."
+
+        new_conversation_id = r.get("conversation_id")
+        if session_attributes is not None and new_conversation_id:
+            session_attributes["conversation_id"] = new_conversation_id
+
+        return r["response"]["speech"]["plain"]["speech"] or "Hecho."
     except Exception as e:
-        logger.exception(e); return "Desole, je n'ai pas pu joindre la maison."
+        logger.exception(e)
+        return "Lo siento, no he podido contactar con la Gemini."
 
 def ha_get_question():
     try:
