@@ -192,7 +192,7 @@ class CatchAll(AbstractExceptionHandler):
     def can_handle(self, handler_input, exception): return True
     def handle(self, handler_input, exception):
         logger.exception(exception)
-        return handler_input.response_builder.speak("Il y a eu un souci.").response
+        return handler_input.response_builder.speak("Ha ocurrido un problema.").response
 
 sb = SkillBuilder()
 for h in [LaunchHandler(), YesHandler(), NoHandler(), CommandHandler(),
