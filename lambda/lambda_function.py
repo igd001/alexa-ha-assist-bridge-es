@@ -4,6 +4,9 @@ import logging, json, urllib.request
 import ask_sdk_core.utils as ask_utils
 from ask_sdk_core.skill_builder import SkillBuilder
 from ask_sdk_core.dispatch_components import AbstractRequestHandler, AbstractExceptionHandler
+from ask_sdk_model import Intent, Slot
+from ask_sdk_model.dialog import ElicitSlotDirective
+
 
 HA_URL   = "https://YOUR_HA_URL.ui.nabu.casa"  # your Home Assistant URL (Nabu Casa remote or your own HTTPS)
 HA_TOKEN = "YOUR_LONG_LIVED_ACCESS_TOKEN"  # HA profile -> Security -> Long-lived access tokens
@@ -61,20 +64,31 @@ def ha_get_question():
 class LaunchHandler(AbstractRequestHandler):
     def can_handle(self, handler_input):
         return ask_utils.is_request_type("LaunchRequest")(handler_input)
-    def handle(self, handler_input):
-        speak = "J'ecoute."; whisper = False
-        try:
-            q = ha_get_question()
-            if q:
-                sa = handler_input.attributes_manager.session_attributes
-                sa["yes"] = q.get("y", ""); sa["no"] = q.get("n", "")
-                whisper = bool(q.get("w")); sa["whisper"] = whisper
-                speak = q.get("t") or speak
-        except Exception as e:
-            logger.exception(e)
-        out = _wrap(speak, whisper)
-        return handler_input.response_builder.speak(out).ask(out).response
 
+    def handle(self, handler_input):
+        sa = handler_input.attributes_manager.session_attributes
+        sa["conversation_id"] = None
+
+        return (
+            handler_input.response_builder
+            .speak("Sí, dime.")
+            .add_directive(
+                ElicitSlotDirective(
+                    slot_to_elicit="command",
+                    updated_intent=Intent(
+                        name="CommandIntent",
+                        confirmation_status="NONE",
+                        slots={
+                            "command": Slot(
+                                name="command",
+                                confirmation_status="NONE"
+                            )
+                        }
+                    )
+                )
+            )
+            .response
+        )
 class YesHandler(AbstractRequestHandler):
     def can_handle(self, handler_input):
         return ask_utils.is_intent_name("AMAZON.YesIntent")(handler_input)
