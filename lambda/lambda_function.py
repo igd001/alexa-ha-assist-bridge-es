@@ -92,18 +92,60 @@ class LaunchHandler(AbstractRequestHandler):
 class YesHandler(AbstractRequestHandler):
     def can_handle(self, handler_input):
         return ask_utils.is_intent_name("AMAZON.YesIntent")(handler_input)
+
     def handle(self, handler_input):
         sa = handler_input.attributes_manager.session_attributes
-        cmd = sa.get("yes")
-        return handler_input.response_builder.speak(_wrap(ha_converse(cmd if cmd else "oui"), sa.get("whisper"))).response
+        respuesta = ha_converse("sí", sa)
+
+        return (
+            handler_input.response_builder
+            .speak(respuesta)
+            .add_directive(
+                ElicitSlotDirective(
+                    slot_to_elicit="command",
+                    updated_intent=Intent(
+                        name="CommandIntent",
+                        confirmation_status="NONE",
+                        slots={
+                            "command": Slot(
+                                name="command",
+                                confirmation_status="NONE"
+                            )
+                        }
+                    )
+                )
+            )
+            .response
+        )
 
 class NoHandler(AbstractRequestHandler):
     def can_handle(self, handler_input):
         return ask_utils.is_intent_name("AMAZON.NoIntent")(handler_input)
+
     def handle(self, handler_input):
         sa = handler_input.attributes_manager.session_attributes
-        cmd = sa.get("no")
-        return handler_input.response_builder.speak(_wrap(ha_converse(cmd if cmd else "non"), sa.get("whisper"))).response
+        respuesta = ha_converse("no", sa)
+
+        return (
+            handler_input.response_builder
+            .speak(respuesta)
+            .add_directive(
+                ElicitSlotDirective(
+                    slot_to_elicit="command",
+                    updated_intent=Intent(
+                        name="CommandIntent",
+                        confirmation_status="NONE",
+                        slots={
+                            "command": Slot(
+                                name="command",
+                                confirmation_status="NONE"
+                            )
+                        }
+                    )
+                )
+            )
+            .response
+        )
 
 class ModeChatHandler(AbstractRequestHandler):
     def can_handle(self, handler_input):
